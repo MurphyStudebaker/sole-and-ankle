@@ -5,6 +5,21 @@ import { COLORS, WEIGHTS } from '../../constants';
 import { formatPrice, pluralize, isNewShoe } from '../../utils';
 import Spacer from '../Spacer';
 
+const VARIANTS = {
+  on_sale: {
+    "--content": "'Sale'",
+    "--background": COLORS.primary,
+  },
+  new_release: {
+    "--content": "'Just Released!'",
+    "--background": COLORS.secondary,
+  },
+  default: {
+    "--content": "",
+    "--background": "transparent",
+  }
+}
+
 const ShoeCard = ({
   slug,
   name,
@@ -26,24 +41,28 @@ const ShoeCard = ({
   // will triumph and be the variant used.
   // prettier-ignore
   const variant = typeof salePrice === 'number'
-    ? 'on-sale'
+    ? 'on_sale'
     : isNewShoe(releaseDate)
-      ? 'new-release'
+      ? 'new_release'
       : 'default'
 
+  console.log(variant)
+
+  const VARS = VARIANTS[variant]
   return (
     <Link href={`/shoe/${slug}`}>
-      <Wrapper>
+      <Wrapper style={VARS}>
         <ImageWrapper>
           <Image alt="" src={imageSrc} />
         </ImageWrapper>
         <Spacer size={12} />
         <Row>
           <Name>{name}</Name>
-          <Price>{formatPrice(price)}</Price>
+          <Price onSale={variant === 'on_sale'}>{formatPrice(price)}</Price>
         </Row>
         <Row>
           <ColorInfo>{pluralize('Color', numOfColors)}</ColorInfo>
+          {variant === 'on_sale' && <SalePrice>{formatPrice(salePrice)}</SalePrice>}
         </Row>
       </Wrapper>
     </Link>
@@ -53,18 +72,39 @@ const ShoeCard = ({
 const Link = styled.a`
   text-decoration: none;
   color: inherit;
-`;
-
-const Wrapper = styled.article``;
-
-const ImageWrapper = styled.div`
+  flex: 1 1 300px;
   position: relative;
 `;
 
-const Image = styled.img``;
+const Wrapper = styled.article`
+  /* Little flag based on variant */
+  &::after {
+    content: var(--content);
+    background-color: var(--background);
+    padding: 8px 10px;
+    border-radius: 2px;
+    color: ${COLORS.white};
+    font-weight: 700;
+    position: absolute;
+    top: 12px;
+    right: -4px;
+  }
+`;
+
+const ImageWrapper = styled.div`
+  position: relative;
+  overflow-hidden;
+`;
+
+const Image = styled.img`
+  border-radius: 16px 16px 4px 4px;
+  width: 100%;
+`;
 
 const Row = styled.div`
   font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
 `;
 
 const Name = styled.h3`
@@ -72,7 +112,9 @@ const Name = styled.h3`
   color: ${COLORS.gray[900]};
 `;
 
-const Price = styled.span``;
+const Price = styled.span`
+  text-decoration: ${p => p.onSale ? 'line-through' : 'none'};
+`;
 
 const ColorInfo = styled.p`
   color: ${COLORS.gray[700]};
